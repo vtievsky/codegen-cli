@@ -1,0 +1,6 @@
+package: clienthttp
+output: gen/clienthttp/clienthttp.go
+
+generate:
+  models: true
+  client: true
