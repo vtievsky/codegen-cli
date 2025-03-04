@@ -8,55 +8,79 @@ import (
 	"path"
 
 	"github.com/vtievsky/codegen-cli/gen/clienthttp"
+	"github.com/vtievsky/codegen-cli/internal/config"
+	"github.com/vtievsky/golibs/runtime/logger"
+	"go.uber.org/zap"
 )
 
 func main() {
+	cfg := config.New()
 	ctx := context.Background()
+	logger := logger.CreateZapLogger(cfg.Debug, cfg.Log.EnableStacktrace)
 
-	// Клиентское приложение открывает файл спецификации
-	data, err := os.ReadFile("../../docs/openapi/swagger.yaml")
-	if err != nil {
-		log.Fatal("ошибка чтения спецификации по указанному пути")
+	if len(os.Args) < 2 {
+		log.Fatal("outputDir must be specified")
 	}
 
-	cli, err := clienthttp.NewClientWithResponses("http://127.0.0.1:8080")
+	// // Клиентское приложение открывает файл спецификации
+	// data, err := os.ReadFile("../../docs/openapi/swagger.yaml")
+	// if err != nil {
+	// 	log.Fatal("ошибка чтения спецификации по указанному пути")
+	// }
+
+	cli, err := clienthttp.NewClientWithResponses(cfg.CodegenSvc.URL)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to create codegen client",
+			zap.Error(err),
+		)
 	}
 
-	_, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
-		Name: "codegen",
-		Spec: data,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// _, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
+	// 	Name: "codegen",
+	// 	Spec: data,
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	nameSpec := "auth-id"
+	outputDir := fmt.Sprintf("%s/tmp/%s", os.Args[1], nameSpec)
+	outputFile := path.Join(outputDir, "clienthttp.go")
 
 	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &clienthttp.GenerateSpecServerHttpParams{
-		Name: "codegen",
+		Name: nameSpec,
 	})
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to generate code for client",
+			zap.Error(err),
+		)
 	}
-
-	outputDir := fmt.Sprintf("./tmp/%s", "codegen")
 
 	// Клиентское приложение удаляет предыдущую версию файла спецификации
 	if err := os.RemoveAll(outputDir); err != nil {
-		log.Fatal(err)
+		logger.Error("failed to remove outputDir",
+			zap.String("outputDir", outputDir),
+			zap.Error(err),
+		)
 	}
 
 	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		logger.Error("failed to make outputDir",
+			zap.String("outputDir", outputDir),
+			zap.Error(err),
+		)
 	}
-
-	// Клиентское приложение сохраняет новую версию файла спецификации
-	outputFile := path.Join(outputDir, "clienthttp.go")
 
 	err = os.WriteFile(outputFile, respCli.JSON200.Spec, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to write outputFile",
+			zap.String("outputFile", outputFile),
+			zap.Error(err),
+		)
 	}
 
-	log.Println("exit")
+	logger.Info("Successfully",
+		zap.String("nameSpec", nameSpec),
+		zap.String("outputFile", outputFile),
+	)
 }
