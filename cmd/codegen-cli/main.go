@@ -19,7 +19,7 @@ func main() {
 	logger := logger.CreateZapLogger(cfg.Debug, cfg.Log.EnableStacktrace)
 
 	if len(os.Args) < 2 {
-		log.Fatal("outputDir must be specified")
+		log.Fatal("nameSpec, outputDir must be specified")
 	}
 
 	// // Клиентское приложение открывает файл спецификации
@@ -33,6 +33,8 @@ func main() {
 		logger.Error("failed to create codegen client",
 			zap.Error(err),
 		)
+
+		return
 	}
 
 	// _, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
@@ -43,8 +45,8 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	nameSpec := "auth-id"
-	outputDir := fmt.Sprintf("%s/tmp/%s", os.Args[1], nameSpec)
+	nameSpec := os.Args[1]
+	outputDir := fmt.Sprintf("%s/tmp/%s", os.Args[2], nameSpec)
 	outputFile := path.Join(outputDir, "clienthttp.go")
 
 	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &clienthttp.GenerateSpecServerHttpParams{
@@ -54,6 +56,8 @@ func main() {
 		logger.Error("failed to generate code for client",
 			zap.Error(err),
 		)
+
+		return
 	}
 
 	// Клиентское приложение удаляет предыдущую версию файла спецификации
@@ -62,6 +66,8 @@ func main() {
 			zap.String("outputDir", outputDir),
 			zap.Error(err),
 		)
+
+		return
 	}
 
 	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
@@ -69,6 +75,8 @@ func main() {
 			zap.String("outputDir", outputDir),
 			zap.Error(err),
 		)
+
+		return
 	}
 
 	err = os.WriteFile(outputFile, respCli.JSON200.Spec, os.ModePerm)
@@ -77,6 +85,8 @@ func main() {
 			zap.String("outputFile", outputFile),
 			zap.Error(err),
 		)
+
+		return
 	}
 
 	logger.Info("Successfully",

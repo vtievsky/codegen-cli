@@ -12,6 +12,7 @@
                 "CODEGEN_CLI_DEBUG": "true"
             },
             "args": [
+                "auth-id",
                 "${workspaceRoot}"
             ]
         }
