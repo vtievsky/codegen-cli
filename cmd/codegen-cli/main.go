@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path"
 
@@ -22,12 +23,6 @@ func main() {
 		log.Fatal("nameSpec, outputDir must be specified")
 	}
 
-	// // Клиентское приложение открывает файл спецификации
-	// data, err := os.ReadFile("../../docs/openapi/swagger.yaml")
-	// if err != nil {
-	// 	log.Fatal("ошибка чтения спецификации по указанному пути")
-	// }
-
 	cli, err := clienthttp.NewClientWithResponses(cfg.CodegenSvc.URL)
 	if err != nil {
 		logger.Error("failed to create codegen client",
@@ -37,30 +32,48 @@ func main() {
 		return
 	}
 
-	// _, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
-	// 	Name: "codegen",
-	// 	Spec: data,
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
+	// Клиентское приложение открывает файл спецификации
 	nameSpec := os.Args[1]
-	outputDir := fmt.Sprintf("%s/tmp/%s", os.Args[2], nameSpec)
-	outputFile := path.Join(outputDir, "clienthttp.go")
+	inputDir := fmt.Sprintf("%s/tmp/%s.yaml", os.Args[2], nameSpec)
+
+	data, err := os.ReadFile(inputDir)
+	if err != nil {
+		log.Fatal("ошибка чтения спецификации по указанному пути")
+	}
+
+	_, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
+		Name: nameSpec,
+		Spec: data,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &clienthttp.GenerateSpecServerHttpParams{
 		Name: nameSpec,
 	})
 	if err != nil {
-		logger.Error("failed to generate code for client",
+		logger.Error("[server] failed to generate code for client",
+			zap.String("nameSpec", nameSpec),
 			zap.Error(err),
 		)
 
 		return
 	}
 
+	if respCli.HTTPResponse.StatusCode != http.StatusOK {
+		logger.Error("[generator] failed to generate code for client",
+			zap.String("nameSpec", nameSpec),
+			zap.String("descr", respCli.JSON500.Status.Description),
+		)
+
+		return
+	}
+
 	// Клиентское приложение удаляет предыдущую версию файла спецификации
+	outputDir := fmt.Sprintf("%s/tmp/%s", os.Args[2], nameSpec)
+	outputFile := path.Join(outputDir, "clienthttp.go")
+
 	if err := os.RemoveAll(outputDir); err != nil {
 		logger.Error("failed to remove outputDir",
 			zap.String("outputDir", outputDir),
