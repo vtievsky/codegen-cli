@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Codegen Client",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceRoot}/cmd/codegen-cli/main.go",
+            "env": {
+                "CODEGEN_CLI_CODEGEN_URL": "http://127.0.0.1:8080",
+                "CODEGEN_CLI_DEBUG": "true"
+            },
+            "args": [
+                "${workspaceRoot}"
+            ]
+        }
+    ]
+}
