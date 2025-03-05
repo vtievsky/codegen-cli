@@ -9,7 +9,7 @@ import (
 func Command() *cli.Command {
 	return &cli.Command{
 		Name:  "gen-http-client",
-		Usage: "Генерация HTTP клиента ",
+		Usage: "Генерация HTTP клиента",
 		Description: "Генерация HTTP клиента для сервиса (--service/-s) на основании спецификации из Spec Storage \n" +
 			"Результат кодогенерации сохраняется в директории - \"gen/httpclient/{service_name}\" \n" +
 			"Название пакета - \"{service_name}httpclient\"  \n",
