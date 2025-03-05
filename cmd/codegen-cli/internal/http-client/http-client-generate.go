@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func GenHTTPClient(
+func GenerateHTTPClient(
 	ctx context.Context,
 	service string,
 	packagePath string,

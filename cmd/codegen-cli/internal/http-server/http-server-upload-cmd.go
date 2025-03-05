@@ -6,11 +6,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func Command() *cli.Command {
+func CommandUploadHttpServer() *cli.Command {
 	return &cli.Command{
 		Name:        "upload-http-server",
-		Usage:       "Выгрузка спецификации HTTP сервера",
-		Description: "Выгрузка спецификации HTTP сервера для сервиса (--service/-s) на основании спецификации из Spec Storage \n",
+		Usage:       "Выгрузка спецификации HTTP-сервера",
+		Description: "Выгрузка спецификации HTTP-сервера для сервиса (--service/-s) на основании спецификации из Spec Storage \n",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     "service",
@@ -27,7 +27,6 @@ func Command() *cli.Command {
 				Value:    "",
 			},
 		},
-
 		Action: func(cCtx *cli.Context) error {
 			if err := UploadHTTPServerSpec(
 				cCtx.Context,

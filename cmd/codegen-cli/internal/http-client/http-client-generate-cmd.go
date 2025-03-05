@@ -4,14 +4,15 @@ import (
 	"fmt"
 
 	"github.com/urfave/cli/v2"
+	"github.com/vtievsky/codegen-cli/pkg/shortcut"
 )
 
-func Command() *cli.Command {
+func CommandGenerateHttpClient() *cli.Command {
 	return &cli.Command{
 		Name:  "gen-http-client",
-		Usage: "Генерация HTTP клиента",
-		Description: "Генерация HTTP клиента для сервиса (--service/-s) на основании спецификации из Spec Storage \n" +
-			"Результат кодогенерации сохраняется в директории - \"gen/httpclient/{service_name}\" \n" +
+		Usage: "Генерация HTTP-клиента",
+		Description: "Генерация HTTP-клиента для сервиса (--service/-s) на основании спецификации из Spec Storage \n" +
+			fmt.Sprintf("Результат кодогенерации сохраняется в директории - \"%s/{service_name}\" \n", shortcut.OutputDirHttpClient) +
 			"Название пакета - \"{service_name}httpclient\"  \n",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -28,9 +29,8 @@ func Command() *cli.Command {
 				Value:   "",
 			},
 		},
-
 		Action: func(cCtx *cli.Context) error {
-			if err := GenHTTPClient(
+			if err := GenerateHTTPClient(
 				cCtx.Context,
 				cCtx.String("service"),
 				cCtx.String("packagepath"),
