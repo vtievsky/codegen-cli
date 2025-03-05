@@ -34,20 +34,20 @@ func main() {
 
 	// Клиентское приложение открывает файл спецификации
 	nameSpec := os.Args[1]
-	inputDir := fmt.Sprintf("%s/tmp/%s.yaml", os.Args[2], nameSpec)
+	// inputDir := fmt.Sprintf("%s/tmp/%s.yaml", os.Args[2], nameSpec)
 
-	data, err := os.ReadFile(inputDir)
-	if err != nil {
-		log.Fatal("ошибка чтения спецификации по указанному пути")
-	}
+	// data, err := os.ReadFile(inputDir)
+	// if err != nil {
+	// 	log.Fatal("ошибка чтения спецификации по указанному пути")
+	// }
 
-	_, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
-		Name: nameSpec,
-		Spec: data,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// _, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
+	// 	Name: nameSpec,
+	// 	Spec: data,
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &clienthttp.GenerateSpecServerHttpParams{
 		Name: nameSpec,
