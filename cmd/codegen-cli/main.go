@@ -18,32 +18,6 @@ func main() {
 		httpclient.CommandGenerateHttpClient(),
 		httpserver.CommandUploadHttpServer(),
 	}
-	// app.Commands = []*cli.Command{{
-	// 	Name:         "codegen",
-	// 	Aliases:      nil,
-	// 	Usage:        "Утилита для кодогенерации",
-	// 	UsageText:    "",
-	// 	Description:  "",
-	// 	ArgsUsage:    "",
-	// 	Category:     "",
-	// 	BashComplete: cli.DefaultAppComplete,
-	// 	Before:       nil,
-	// 	After:        nil,
-	// 	Action:       nil,
-	// 	OnUsageError: nil,
-	// 	Subcommands: []*cli.Command{
-	// 		httpclient.CommandGenerateHttpClient(),
-	// 		httpserver.CommandUploadHttpServer(),
-	// 	},
-	// 	Flags:                  nil,
-	// 	SkipFlagParsing:        false,
-	// 	HideHelp:               false,
-	// 	HideHelpCommand:        false,
-	// 	Hidden:                 false,
-	// 	UseShortOptionHandling: false,
-	// 	HelpName:               "",
-	// 	CustomHelpTemplate:     "",
-	// }}
 
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
