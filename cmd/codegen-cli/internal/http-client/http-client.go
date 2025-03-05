@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 
-	httpclient "github.com/vtievsky/codegen-cli/gen/httpclient/codegen"
+	codegenhttpclient "github.com/vtievsky/codegen-cli/gen/httpclient/codegen"
 	"github.com/vtievsky/codegen-cli/internal/conf"
 	"github.com/vtievsky/codegen-cli/pkg/shortcut"
 	"github.com/vtievsky/golibs/runtime/logger"
@@ -35,13 +35,13 @@ func GenHTTPClient(
 
 	outputDir := path.Join(workDir, shortcut.OutputDirHttpClient)
 	outputDir = path.Join(outputDir, service)
-	outputFile := "client.go"
+	outputFile := fmt.Sprintf("%shttpclient.go", service)
 	outputFileName := path.Join(outputDir, outputFile)
 
 	conf := conf.New()
 	logger := logger.CreateZapLogger(conf.Debug, conf.Log.EnableStacktrace)
 
-	cli, err := httpclient.NewClientWithResponses(conf.CodegenSvc.URL)
+	cli, err := codegenhttpclient.NewClientWithResponses(conf.CodegenSvc.URL)
 	if err != nil {
 		logger.Error("failed to create codegen client",
 			zap.Error(err),
@@ -63,7 +63,7 @@ func GenHTTPClient(
 	// // 	log.Fatal(err)
 	// // }
 
-	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &httpclient.GenerateSpecServerHttpParams{
+	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &codegenhttpclient.GenerateSpecServerHttpParams{
 		Name: service,
 	})
 	if err != nil {
