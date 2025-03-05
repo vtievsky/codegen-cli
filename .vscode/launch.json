@@ -13,8 +13,12 @@
                 "CODEGEN_CLI_DEBUG": "true"
             },
             "args": [
-                "auth-id",
-                "${workspaceRoot}"
+                "codegen",
+                "http-client",
+                "--packagepath",
+                "../../",
+                "--service",
+                "auth-id"
             ]
         }
     ]
