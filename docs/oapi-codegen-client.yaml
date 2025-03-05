@@ -1,5 +1,5 @@
-package: clienthttp
-output: gen/clienthttp/clienthttp.go
+package: codegenhttpclient
+output: gen/httpclient/codegen/codegenhttpclient.go
 
 generate:
   models: true
