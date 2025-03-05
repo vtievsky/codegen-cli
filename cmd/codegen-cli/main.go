@@ -6,12 +6,13 @@ import (
 
 	"github.com/urfave/cli/v2"
 	httpclient "github.com/vtievsky/codegen-cli/cmd/codegen-cli/internal/http-client"
+	httpserver "github.com/vtievsky/codegen-cli/cmd/codegen-cli/internal/http-server"
 )
 
 func main() {
 	app := cli.NewApp()
-
 	app.DefaultCommand = "command-list"
+
 	app.Commands = []*cli.Command{{
 		Name:         "codegen",
 		Aliases:      nil,
@@ -27,6 +28,7 @@ func main() {
 		OnUsageError: nil,
 		Subcommands: []*cli.Command{
 			httpclient.Command(),
+			httpserver.Command(),
 		},
 		Flags:                  nil,
 		SkipFlagParsing:        false,

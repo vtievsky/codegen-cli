@@ -14,9 +14,12 @@
             },
             "args": [
                 "codegen",
-                "gen-http-client",
-                "--packagepath",
-                "../../",
+                // "gen-http-client",
+                // "--packagepath",
+                // "../../",
+                "upload-http-server",
+                "--source",
+                "${workspaceRoot}/tmp/auth-id.yaml",
                 "--service",
                 "auth-id"
             ]
