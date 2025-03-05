@@ -63,7 +63,7 @@ func GenHTTPClient(
 	// // 	log.Fatal(err)
 	// // }
 
-	respCli, err := cli.GenerateSpecServerHttpWithResponse(ctx, &codegenhttpclient.GenerateSpecServerHttpParams{
+	respCli, err := cli.GenerateSpecClientHttpWithResponse(ctx, &codegenhttpclient.GenerateSpecClientHttpParams{
 		Name: service,
 	})
 	if err != nil {
