@@ -14,7 +14,7 @@
             },
             "args": [
                 "codegen",
-                "http-client",
+                "gen-http-client",
                 "--packagepath",
                 "../../",
                 "--service",
