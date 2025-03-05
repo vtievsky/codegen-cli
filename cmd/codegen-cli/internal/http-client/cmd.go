@@ -15,10 +15,11 @@ func Command() *cli.Command {
 			"Название пакета - \"{service_name}httpclient\"  \n",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    "service",
-				Aliases: []string{"s"},
-				Usage:   "Название сервиса",
-				Value:   "",
+				Name:     "service",
+				Aliases:  []string{"s"},
+				Required: true,
+				Usage:    "Название сервиса",
+				Value:    "",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    "packagepath",

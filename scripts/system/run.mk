@@ -3,4 +3,4 @@ install:  ## Установка зависимостей проекта
 	go install github.com/swaggo/swag/cmd/swag@latest
 
 run:
-	bash -c 'set -a; . ./build/local/.env; set +a; go run cmd/codegen-cli/main.go auth-id $(shell pwd)'
+	bash -c 'set -a; . ./build/local/.env; set +a; go run cmd/codegen-cli/main.go'
