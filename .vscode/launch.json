@@ -13,7 +13,7 @@
                 "CODEGEN_CLI_DEBUG": "true"
             },
             "args": [
-                // "codegen",
+                "abc"
                 // // "gen-http-client",
                 // // "--packagepath",
                 // // "../../",
