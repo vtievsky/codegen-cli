@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func GenHTTPClient(
+func GenerateHTTPClient(
 	ctx context.Context,
 	service string,
 	packagePath string,
@@ -49,19 +49,6 @@ func GenHTTPClient(
 
 		return fmt.Errorf("failed to create codegen client | %w", err)
 	}
-
-	// // data, err := os.ReadFile(inputDir)
-	// // if err != nil {
-	// // 	log.Fatal("ошибка чтения спецификации по указанному пути")
-	// // }
-
-	// // _, err = cli.UploadSpecHttpWithResponse(ctx, clienthttp.UploadSpecHttpRequest{
-	// // 	Name: nameSpec,
-	// // 	Spec: data,
-	// // })
-	// // if err != nil {
-	// // 	log.Fatal(err)
-	// // }
 
 	respCli, err := cli.GenerateSpecClientHttpWithResponse(ctx, &codegenhttpclient.GenerateSpecClientHttpParams{
 		Name: service,
