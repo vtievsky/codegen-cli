@@ -79,18 +79,6 @@ type UploadSpecHttpResponse500 struct {
 	Status ResponseStatusError `json:"status"`
 }
 
-// GenerateSpecClientHttpParams defines parameters for GenerateSpecClientHttp.
-type GenerateSpecClientHttpParams struct {
-	// Name Наименование сервера спецификации для которого генерируется клиент
-	Name string `form:"name" json:"name"`
-}
-
-// GenerateSpecServerHttpParams defines parameters for GenerateSpecServerHttp.
-type GenerateSpecServerHttpParams struct {
-	// Name Наименование сервера спецификации
-	Name string `form:"name" json:"name"`
-}
-
 // UploadSpecHttpJSONRequestBody defines body for UploadSpecHttp for application/json ContentType.
 type UploadSpecHttpJSONRequestBody = UploadSpecHttpRequest
 
@@ -168,31 +156,19 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 	// GenerateSpecClientHttp request
-	GenerateSpecClientHttp(ctx context.Context, params *GenerateSpecClientHttpParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GenerateSpecServerHttp request
-	GenerateSpecServerHttp(ctx context.Context, params *GenerateSpecServerHttpParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GenerateSpecClientHttp(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UploadSpecHttpWithBody request with any body
 	UploadSpecHttpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UploadSpecHttp(ctx context.Context, body UploadSpecHttpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GenerateSpecServerHttp request
+	GenerateSpecServerHttp(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GenerateSpecClientHttp(ctx context.Context, params *GenerateSpecClientHttpParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGenerateSpecClientHttpRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GenerateSpecServerHttp(ctx context.Context, params *GenerateSpecServerHttpParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGenerateSpecServerHttpRequest(c.Server, params)
+func (c *Client) GenerateSpecClientHttp(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateSpecClientHttpRequest(c.Server, name)
 	if err != nil {
 		return nil, err
 	}
@@ -227,61 +203,35 @@ func (c *Client) UploadSpecHttp(ctx context.Context, body UploadSpecHttpJSONRequ
 	return c.Client.Do(req)
 }
 
-// NewGenerateSpecClientHttpRequest generates requests for GenerateSpecClientHttp
-func NewGenerateSpecClientHttpRequest(server string, params *GenerateSpecClientHttpParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
+func (c *Client) GenerateSpecServerHttp(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateSpecServerHttpRequest(c.Server, name)
 	if err != nil {
 		return nil, err
 	}
-
-	operationPath := fmt.Sprintf("/v1/spechttpclients/")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
 		return nil, err
 	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, params.Name); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
+	return c.Client.Do(req)
 }
 
-// NewGenerateSpecServerHttpRequest generates requests for GenerateSpecServerHttp
-func NewGenerateSpecServerHttpRequest(server string, params *GenerateSpecServerHttpParams) (*http.Request, error) {
+// NewGenerateSpecClientHttpRequest generates requests for GenerateSpecClientHttp
+func NewGenerateSpecClientHttpRequest(server string, name string) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/spechttpservers/")
+	operationPath := fmt.Sprintf("/v1/spechttpclients/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -289,24 +239,6 @@ func NewGenerateSpecServerHttpRequest(server string, params *GenerateSpecServerH
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, params.Name); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -357,6 +289,40 @@ func NewUploadSpecHttpRequestWithBody(server string, contentType string, body io
 	return req, nil
 }
 
+// NewGenerateSpecServerHttpRequest generates requests for GenerateSpecServerHttp
+func NewGenerateSpecServerHttpRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/spechttpservers/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -401,15 +367,15 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 	// GenerateSpecClientHttpWithResponse request
-	GenerateSpecClientHttpWithResponse(ctx context.Context, params *GenerateSpecClientHttpParams, reqEditors ...RequestEditorFn) (*GenerateSpecClientHttpResponse, error)
-
-	// GenerateSpecServerHttpWithResponse request
-	GenerateSpecServerHttpWithResponse(ctx context.Context, params *GenerateSpecServerHttpParams, reqEditors ...RequestEditorFn) (*GenerateSpecServerHttpResponse, error)
+	GenerateSpecClientHttpWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GenerateSpecClientHttpResponse, error)
 
 	// UploadSpecHttpWithBodyWithResponse request with any body
 	UploadSpecHttpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadSpecHttpResponse, error)
 
 	UploadSpecHttpWithResponse(ctx context.Context, body UploadSpecHttpJSONRequestBody, reqEditors ...RequestEditorFn) (*UploadSpecHttpResponse, error)
+
+	// GenerateSpecServerHttpWithResponse request
+	GenerateSpecServerHttpWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GenerateSpecServerHttpResponse, error)
 }
 
 type GenerateSpecClientHttpResponse struct {
@@ -429,29 +395,6 @@ func (r GenerateSpecClientHttpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GenerateSpecClientHttpResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GenerateSpecServerHttpResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *GenerateSpecHttpResponse200
-	JSON500      *GenerateSpecHttpResponse500
-}
-
-// Status returns HTTPResponse.Status
-func (r GenerateSpecServerHttpResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GenerateSpecServerHttpResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -481,22 +424,36 @@ func (r UploadSpecHttpResponse) StatusCode() int {
 	return 0
 }
 
+type GenerateSpecServerHttpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GenerateSpecHttpResponse200
+	JSON500      *GenerateSpecHttpResponse500
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateSpecServerHttpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateSpecServerHttpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GenerateSpecClientHttpWithResponse request returning *GenerateSpecClientHttpResponse
-func (c *ClientWithResponses) GenerateSpecClientHttpWithResponse(ctx context.Context, params *GenerateSpecClientHttpParams, reqEditors ...RequestEditorFn) (*GenerateSpecClientHttpResponse, error) {
-	rsp, err := c.GenerateSpecClientHttp(ctx, params, reqEditors...)
+func (c *ClientWithResponses) GenerateSpecClientHttpWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GenerateSpecClientHttpResponse, error) {
+	rsp, err := c.GenerateSpecClientHttp(ctx, name, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseGenerateSpecClientHttpResponse(rsp)
-}
-
-// GenerateSpecServerHttpWithResponse request returning *GenerateSpecServerHttpResponse
-func (c *ClientWithResponses) GenerateSpecServerHttpWithResponse(ctx context.Context, params *GenerateSpecServerHttpParams, reqEditors ...RequestEditorFn) (*GenerateSpecServerHttpResponse, error) {
-	rsp, err := c.GenerateSpecServerHttp(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGenerateSpecServerHttpResponse(rsp)
 }
 
 // UploadSpecHttpWithBodyWithResponse request with arbitrary body returning *UploadSpecHttpResponse
@@ -516,6 +473,15 @@ func (c *ClientWithResponses) UploadSpecHttpWithResponse(ctx context.Context, bo
 	return ParseUploadSpecHttpResponse(rsp)
 }
 
+// GenerateSpecServerHttpWithResponse request returning *GenerateSpecServerHttpResponse
+func (c *ClientWithResponses) GenerateSpecServerHttpWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GenerateSpecServerHttpResponse, error) {
+	rsp, err := c.GenerateSpecServerHttp(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateSpecServerHttpResponse(rsp)
+}
+
 // ParseGenerateSpecClientHttpResponse parses an HTTP response from a GenerateSpecClientHttpWithResponse call
 func ParseGenerateSpecClientHttpResponse(rsp *http.Response) (*GenerateSpecClientHttpResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -525,39 +491,6 @@ func ParseGenerateSpecClientHttpResponse(rsp *http.Response) (*GenerateSpecClien
 	}
 
 	response := &GenerateSpecClientHttpResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest GenerateSpecHttpResponse200
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest GenerateSpecHttpResponse500
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGenerateSpecServerHttpResponse parses an HTTP response from a GenerateSpecServerHttpWithResponse call
-func ParseGenerateSpecServerHttpResponse(rsp *http.Response) (*GenerateSpecServerHttpResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GenerateSpecServerHttpResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -605,6 +538,39 @@ func ParseUploadSpecHttpResponse(rsp *http.Response) (*UploadSpecHttpResponse, e
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest UploadSpecHttpResponse500
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGenerateSpecServerHttpResponse parses an HTTP response from a GenerateSpecServerHttpWithResponse call
+func ParseGenerateSpecServerHttpResponse(rsp *http.Response) (*GenerateSpecServerHttpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateSpecServerHttpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GenerateSpecHttpResponse200
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest GenerateSpecHttpResponse500
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

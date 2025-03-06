@@ -50,9 +50,7 @@ func GenerateHTTPClient(
 		return fmt.Errorf("failed to create codegen client | %w", err)
 	}
 
-	respCli, err := cli.GenerateSpecClientHttpWithResponse(ctx, &codegenhttpclient.GenerateSpecClientHttpParams{
-		Name: service,
-	})
+	respCli, err := cli.GenerateSpecClientHttpWithResponse(ctx, service)
 	if err != nil {
 		logger.Error("failed to generate code for httpclient",
 			zap.String("service", service),
